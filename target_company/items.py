@@ -9,6 +9,14 @@ import scrapy
 
 
 class TargetCompanyItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    # url指纹
+    url_fingerprint = scrapy.Field()
+    company_name = scrapy.Field()
+    company_location = scrapy.Field()
+    # 公司业务描述
+    company_desc = scrapy.Field()
+    company_scale = scrapy.Field()
+    job_name = scrapy.Field()
+    # 职位描述
+    job_desc = scrapy.Field()
+
