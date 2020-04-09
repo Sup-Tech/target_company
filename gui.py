@@ -53,7 +53,7 @@ class MainWindow(QWidget):
         super(MainWindow, self).__init__()
         self.setWindowTitle('数据筛选')
         self.setFixedSize(650, 700)
-        self.setWindowFlags(Qt.WindowMinimizeButtonHint)
+        self.setWindowFlags(Qt.WindowMinimizeButtonHint|Qt.WindowCloseButtonHint)
         self.setup_ui()
         self.conn = sqlite3.connect('target_company.db')
         self.signal_slot()
@@ -103,7 +103,7 @@ class MainWindow(QWidget):
         self.del_btn = QPushButton('删除')
         self.del_btn.setSizePolicy(fixed_sp)
         self.process_bar = QProgressBar()
-        self.process_bar.setFormat('{}/{}'.format(self.process_bar.value(), self.process_bar.maximum()))
+        self.process_bar.setFormat('%v/%m')
         # 创建滚动区域 & 滚动条
         self.scroll_area_company = QScrollArea()
         scroll_bar_company = QScrollBar()
