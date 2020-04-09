@@ -52,7 +52,7 @@ class MainWindow(QWidget):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setWindowTitle('数据筛选')
-        self.setFixedSize(650, 700)
+        self.setFixedSize(650, 600)
         self.setWindowFlags(Qt.WindowMinimizeButtonHint|Qt.WindowCloseButtonHint)
         self.setup_ui()
         self.conn = sqlite3.connect('target_company.db')
@@ -165,7 +165,7 @@ class MainWindow(QWidget):
                 print(e)
             # 筛选出该区域的所有数据
             else:
-                sql = "select id, company_id, job_id from raw_datas where area_id='{}';".format(area_id)
+                sql = "select id, company_id, job_id from raw_datas where area_id='{}' and is_read=0;".format(area_id)
                 results = c.execute(sql).fetchall()
                 print(results)
                 total = len(results)
@@ -206,6 +206,17 @@ class MainWindow(QWidget):
 
     def save(self):
         """保存该组数据到新的数据表 并显示下一条"""
+        possible = self.possible_ledit.text()
+        note = self.note_ledit.text()
+
+        if possible:
+            sql = "insert into final_datas(possible, note, raw_id) values('{}','{}',{})".format(possible, note, self.Id)
+            c = self.conn.cursor()
+            c.execute(sql)
+            sql = "update raw_datas set is_read=1 where id={};".format(self.Id)
+            c.execute(sql)
+            self.conn.commit()
+
         if self.is_begined and self.process_bar.value() < self.process_bar.maximum():
             self.t.next()
         else:

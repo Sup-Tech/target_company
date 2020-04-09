@@ -86,7 +86,8 @@ class TargetCompanyPipeline(object):
 # create table final_datas(
 # id integer primary key autoincrement,
 # possible int,
-# raw_id int,
+# note text,
+# raw_id int unique,
 # foreign key(raw_id) references raw_datas(id));
 # create table fingerprint(url_md5 text unique);
 # drop table areas;
