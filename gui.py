@@ -57,8 +57,10 @@ class MainWindow(QWidget):
         self.setup_ui()
         self.conn = sqlite3.connect('target_company.db')
         self.signal_slot()
-        self.current = 1
-        self.total = None
+
+        self.area = ''
+        self.Id = None
+        self.jobId = None
         # 标志
         self.is_begined = False
 
@@ -175,6 +177,7 @@ class MainWindow(QWidget):
                 self.t.task_finished.connect(self.finished)
                 self.t.start()
 
+                self.area = city
                 self.is_begined = True
                 print('--')
         else:
@@ -183,23 +186,39 @@ class MainWindow(QWidget):
     def show_loop(self, e):
         """循环显示"""
         print('show_loop', e)
-        # c = self.conn.cursor()
-        #
-        # sql = "select company_name, company_address, company_scale, company_desc from companies where id='{}';".format(company_id)
-        # company_info = c.execute(sql).fetchall()
-        # print(company_info)
-        # sql = "select job_name, job_desc from jobs where id='{}';".format(job_id)
-        # job_info = c.execute(sql).fetchall()
-        # print(job_info)
+        self.Id = e[0]
+        company_id = e[1]
+        self.jobId = e[2]
+        c = self.conn.cursor()
+        sql = "select company_name, company_address, company_scale, company_desc from companies where id='{}';".format(company_id)
+        company_info = c.execute(sql).fetchone()
+        print(company_info)
+        sql = "select job_name, job_desc from jobs where id='{}';".format(self.jobId)
+        job_info = c.execute(sql).fetchone()
+        print(job_info)
+        self.job_name.setText(job_info[0].strip())
+        self.company_name.setText(company_info[0])
+        self.company_scale.setText(company_info[2])
+        self.company_area.setText(self.area)
+        self.company_addr.setText(company_info[1])
+        self.company_desc_browser.setPlainText(company_info[-1])
+        self.job_desc_browser.setPlainText(job_info[1])
 
     def save(self):
-        """"""
+        """保存该组数据到新的数据表 并显示下一条"""
         if self.is_begined and self.process_bar.value() < self.process_bar.maximum():
             self.t.next()
         else:
             print('没有next了')
 
     def delete(self):
+        """删除该组数据 并显示下一条"""
+        c = self.conn.cursor()
+        sql = "delete from raw_datas where id={};".format(self.Id)
+        c.execute(sql)
+        sql = "delete from jobs where id={};".format(self.jobId)
+        c.execute(sql)
+        self.conn.commit()
         if self.is_begined and self.process_bar.value() < self.process_bar.maximum():
             self.t.next()
         else:
