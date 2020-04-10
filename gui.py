@@ -4,6 +4,8 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QLabel, \
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex, QTimer
 from model.widgets_models import *
 import sqlite3
+import requests
+
 
 class Thread(QThread):
 
@@ -47,10 +49,10 @@ class Thread(QThread):
             self.mutex.unlock()
 
 
-class MainWindow(QWidget):
+class DatasFilterWindow(QWidget):
 
     def __init__(self):
-        super(MainWindow, self).__init__()
+        super(DatasFilterWindow, self).__init__()
         self.setWindowTitle('数据筛选')
         self.setFixedSize(650, 600)
         self.setWindowFlags(Qt.WindowMinimizeButtonHint|Qt.WindowCloseButtonHint)
@@ -192,18 +194,18 @@ class MainWindow(QWidget):
         self.jobId = e[2]
         c = self.conn.cursor()
         sql = "select company_name, company_address, company_scale, company_desc from companies where id='{}';".format(company_id)
-        company_info = c.execute(sql).fetchone()
-        print(company_info)
+        self.company_info = c.execute(sql).fetchone()
+        print(self.company_info)
         sql = "select job_name, job_desc from jobs where id='{}';".format(self.jobId)
-        job_info = c.execute(sql).fetchone()
-        print(job_info)
-        self.job_name.setText(job_info[0].strip())
-        self.company_name.setText(company_info[0])
-        self.company_scale.setText(company_info[2])
+        self.job_info = c.execute(sql).fetchone()
+        print(self.job_info)
+        self.job_name.setText(self.job_info[0].strip())
+        self.company_name.setText(self.company_info[0])
+        self.company_scale.setText(self.company_info[2])
         self.company_area.setText(self.area)
-        self.company_addr.setText(company_info[1])
-        self.company_desc_browser.setPlainText(company_info[-1])
-        self.job_desc_browser.setPlainText(job_info[1])
+        self.company_addr.setText(self.company_info[1])
+        self.company_desc_browser.setPlainText(self.company_info[-1])
+        self.job_desc_browser.setPlainText(self.job_info[1])
 
     def save(self):
         """
@@ -214,19 +216,40 @@ class MainWindow(QWidget):
         note = self.note_ledit.text()
 
         if possible:
-            sql = "insert into final_datas(possible, note, raw_id) values('{}','{}',{})".format(possible, note, self.Id)
             c = self.conn.cursor()
+            # 获取公司地址的经纬度
+            addr = self.company_info[1]
+            ak = 'ysZHXY6AwYQYcXLuhTCkV2a1YvOk5Dm2'
+            url = 'http://api.map.baidu.com/geocoding/v3/?address={}&output=json&ak={}'.format(addr, ak)
+            result = requests.get(url=url).json()['result']
+            print('result', result)
+            # 插入数据到map_datas
+            sql = "insert into map_datas(lng, lat, precise, confidence, comprehension, level) " \
+                  "values({}, {}, {}, {}, {}, '{}');".format(result['location']['lng'], result['location']['lat'],
+                                                             result['precise'], result['confidence'],
+                                                             result['comprehension'], result['level'])
             c.execute(sql)
+            # 获取刚刚插入数据的map_id
+            sql = "select max(id) from map_datas;"
+            max_map_id = c.execute(sql).fetchone()[0]
+            print('max_map_id', max_map_id)
+            # 插入数据到final_datas
+            sql = "insert into final_datas(possible, note, raw_id, map_id) values('{}','{}',{}, {});".format(possible, note, self.Id, max_map_id)
+            c.execute(sql)
+            # 更新raw_datas的is_read值 表示已经筛选过,下次不再显示
             sql = "update raw_datas set is_read=1 where id={};".format(self.Id)
             c.execute(sql)
             self.conn.commit()
+            # 清除输入控件当前的数据
+            self.note_ledit.clear()
+            self.possible_ledit.clear()
+            # 检测当前城市是否还有未筛选的数据组
             if self.is_begined and self.process_bar.value() < self.process_bar.maximum():
                 self.t.next()
             else:
                 print('没有next了')
         else:
             # 提醒没有填写可能性
-            print('ffd')
             self.status_tag.setText('没有写可能性')
             QTimer.singleShot(2000, self.clear_statu)
 
@@ -246,10 +269,31 @@ class MainWindow(QWidget):
         else:
             print('没有next了')
 
-
     def finished(self):
         print('任务结束')
 
     def clear_statu(self):
-        print('fff')
+
         self.status_tag.setText('')
+
+
+class MainWindow(QMainWindow):
+
+    def __init__(self):
+        super(MainWindow, self).__init__()
+
+        self.setup_ui()
+
+    def setup_ui(self):
+        self.search = QLineEdit()
+        self.search.setPlaceholderText('Search')
+        self.start_scrawl = QPushButton('开始爬取')
+        self.filter_datas = QPushButton('数据筛选')
+        layout = QHBoxLayout()
+        layout.addStretch(0)
+        layout.addWidget(self.search)
+        layout.addWidget(self.start_scrawl)
+        layout.addStretch(1)
+        layout.addWidget(self.filter_datas)
+
+        self.setLayout(layout)

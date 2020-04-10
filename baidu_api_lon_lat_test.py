@@ -1,13 +1,23 @@
 import requests
 addr = '武义县百花山工业区桂花路66号'
-ak = 'ysZHXY6AwYQYcXLuhTCkV2a1YvOk5Dm2'
 # http://api.map.baidu.com/geocoding/v3/?address=北京市海淀区上地十街10号&output=json&ak=您的ak&callback=showLocation //GET请求
+ak = 'ysZHXY6AwYQYcXLuhTCkV2a1YvOk5Dm2'
 url = 'http://api.map.baidu.com/geocoding/v3/?address={}&output=json&ak={}'.format(addr, ak)
 res = requests.get(url=url)
 print(res)
 # <Response [200]>
-print(res.text)
+print(type(res.text))
+print(res.json()['result'])
 # {"status":0,"result":{"location":{"lng":119.8538979994067,"lat":28.973137670009696},"precise":1,"confidence":80,"comprehension":100,"level":"门址"}}
+# requests 返回的数据格式
+# {"status":0,"result":{
+#       "location":{"lng":119.8538979994067,"lat":28.973137670009696},
+#       "precise":1,
+#       "confidence":80,
+#       "comprehension":100,
+#       "level":"门址"
+#       }
+#       }
 """
 status
 返回结果状态值， 成功返回0，其他值请查看下方返回码状态表。
