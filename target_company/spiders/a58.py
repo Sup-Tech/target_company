@@ -17,6 +17,10 @@ class A58Spider(scrapy.Spider):
     first_url = ''
     # 一些标志符
     is_final = False
+    # 一些计数器
+    total = 0
+    fingerprint_repeat_error = 0
+    company_repeat_error = 0
 
     def __init__(self):
         super(A58Spider, self).__init__()
@@ -25,7 +29,10 @@ class A58Spider(scrapy.Spider):
         self.c = self.conn.cursor()
 
     def start_requests(self):
-        browser = webdriver.Chrome()
+        # 设置无头模式
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        browser = webdriver.Chrome(options=options)
         print('浏览器启动')
         # 打开58 切换城市的页面
         print('打开 58切换城市的页面')
@@ -58,13 +65,14 @@ class A58Spider(scrapy.Spider):
                     for job in job_list:
                         url = job.get_attribute('href')
                         finger = url.split('.shtml?')[0]
-                        print(finger)
-                        fingerprint = hashlib.md5(finger.encode(encoding='utf-8')).hexdigest()
+                        self.fingerprint = hashlib.md5(finger.encode(encoding='utf-8')).hexdigest()
                         # 增量爬虫 指纹去重
-                        sql = 'insert into fingerprint values("{}");'.format(fingerprint)
+                        sql = 'insert into fingerprint values("{}");'.format(self.fingerprint)
                         try:
                             self.c.execute(sql)
                             self.conn.commit()
+                        except sqlite3.IntegrityError:
+                            self.fingerprint_repeat_error += 1
                         except Exception as e:
                             print(e)
                         else:
@@ -80,16 +88,19 @@ class A58Spider(scrapy.Spider):
 
     def parse(self, response):
         """抓取公司信息，职位信息"""
-        print('开始抓取详情页')
         try:
-            company_desc = reduce(lambda x,y: x+y, response.xpath('//div[@class="shiji"]/p/text()').extract())
-            company_name= response.xpath('//div[@class="baseInfo_link"]/a/text()').get()
+            company_desc = reduce(lambda x, y: x+y, response.xpath('//div[@class="shiji"]/p/text()').extract())
+            company_name = response.xpath('//div[@class="baseInfo_link"]/a/text()').get()
             company_address = response.xpath('//div[@class="pos-area"]/span[2]/text()').get()
             company_scale = response.xpath('//p[@class="comp_baseInfo_scale"]/text()').get().split('-')[0]
             job_name = response.xpath('//span[@class="pos_title"]/text()').get()
-            job_desc = reduce(lambda x,y: x+y, response.xpath('//div[@class="des"]/text()').extract())
+            job_desc = reduce(lambda x, y: x+y, response.xpath('//div[@class="des"]/text()').extract())
         except Exception as e:
             print(e)
+            print(self.fingerprint)
+            sql = "delete from fingerprint where url_md5='{}';".format(self.fingerprint)
+            self.c.execute(sql)
+            self.conn.commit()
             time.sleep(8)
         # 创建表单变量
         area_id = ''
@@ -99,7 +110,10 @@ class A58Spider(scrapy.Spider):
         sql = "insert into areas(area) values('{}');".format(self.city)
         try:
             self.c.execute(sql)
+        except sqlite3.IntegrityError:
+            pass
         except Exception as e:
+            print(type(e))
             sql = "select id from areas where area = '{}';".format(self.city)
             area_id = self.c.execute(sql).fetchone()[0]
         else:
@@ -111,7 +125,10 @@ class A58Spider(scrapy.Spider):
               "values('{}', '{}', '{}', '{}');".format(company_name, company_address, company_scale, company_desc)
         try:
             self.c.execute(sql)
+        except sqlite3.IntegrityError:
+            self.company_repeat_error += 1
         except Exception as e:
+            print(e)
             sql = "select id from companies where company_name = '{}';".format(company_name)
             company_id = self.c.execute(sql).fetchone()[0]
         else:
@@ -122,6 +139,8 @@ class A58Spider(scrapy.Spider):
               "values('{}', '{}');".format(job_name, job_desc)
         try:
             self.c.execute(sql)
+        except sqlite3.IntegrityError:
+            pass
         except Exception as e:
             print(e)
         else:
@@ -130,14 +149,16 @@ class A58Spider(scrapy.Spider):
         # 插入爬取数据表数据
         sql = "insert into raw_datas(area_id, company_id, job_id) " \
               "values('{}', '{}', '{}');".format(area_id, company_id, job_id)
-        print(sql)
         self.c.execute(sql)
         self.conn.commit()
-        # item = TargetCompanyItem()
+
         return
 
-
-
+    def close(self, spider, reason):
+        print('公司重复次数')
+        print(self.company_repeat_error)
+        print('指纹重复次数')
+        print(self.fingerprint_repeat_error)
 
 
 

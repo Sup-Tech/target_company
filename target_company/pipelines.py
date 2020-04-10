@@ -61,41 +61,6 @@ class TargetCompanyPipeline(object):
         # self.c.execute(sql)
         # self.conn.commit()
         # print('创建完成')
-# create table areas(
-# id integer primary key autoincrement,
-# area text unique);
-# create table companies(
-# id integer primary key autoincrement,
-# company_name text unique,
-# company_address text,
-# company_scale text,
-# company_desc text);
-# create table jobs(
-# id integer primary key autoincrement,
-# job_name text,
-# job_desc text);
-# create table raw_datas(
-# id integer primary key autoincrement,
-# area_id int,
-# company_id int,
-# job_id int,
-# is_read int default 0,
-# foreign key(area_id) references areas(id),
-# foreign key(company_id) references companies(id),
-# foreign key(job_id) references jobs(id));
-# create table final_datas(
-# id integer primary key autoincrement,
-# possible int,
-# note text,
-# raw_id int unique,
-# foreign key(raw_id) references raw_datas(id));
-# create table fingerprint(url_md5 text unique);
-# drop table areas;
-# drop table companies;
-# drop table jobs;
-# drop table raw_datas;
-# drop table final_datas;
-# drop table fingerprint;
 
     def process_item(self, item, spider):
 
