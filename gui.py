@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QLabel, \
     QGridLayout, QScrollArea, QScrollBar, QHBoxLayout, QLayout, QSizePolicy, \
-    QProgressBar
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex
+    QProgressBar, QStatusBar, QMainWindow
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex, QTimer
 from model.widgets_models import *
 import sqlite3
 
@@ -85,6 +85,7 @@ class MainWindow(QWidget):
         self.company_area = QLabel('')
         job_name_tag = QLabel('职位名称')
         self.job_name = QLabel('')
+        self.status_tag = QLabel('')
         # QTextBrowser
         self.company_desc_browser = QTextBrowser()
         self.job_desc_browser = QTextBrowser()
@@ -140,9 +141,9 @@ class MainWindow(QWidget):
         layout_1_1_2.addWidget(self.del_btn,4,2,1,1)
 
         layout_1.addWidget(self.company_desc_browser)
-
         layout_1.addWidget(self.job_desc_browser)
         layout_1.addWidget(self.process_bar)
+        layout_1.addWidget(self.status_tag,Qt.AlignCenter)
 
         self.setLayout(layout_1)
 
@@ -205,7 +206,10 @@ class MainWindow(QWidget):
         self.job_desc_browser.setPlainText(job_info[1])
 
     def save(self):
-        """保存该组数据到新的数据表 并显示下一条"""
+        """
+        保存该组数据到新的数据表
+        并更新地图用数据
+        并显示下一条"""
         possible = self.possible_ledit.text()
         note = self.note_ledit.text()
 
@@ -216,11 +220,18 @@ class MainWindow(QWidget):
             sql = "update raw_datas set is_read=1 where id={};".format(self.Id)
             c.execute(sql)
             self.conn.commit()
-
-        if self.is_begined and self.process_bar.value() < self.process_bar.maximum():
-            self.t.next()
+            if self.is_begined and self.process_bar.value() < self.process_bar.maximum():
+                self.t.next()
+            else:
+                print('没有next了')
         else:
-            print('没有next了')
+            # 提醒没有填写可能性
+            print('ffd')
+            self.status_tag.setText('没有写可能性')
+            QTimer.singleShot(2000, self.clear_statu)
+
+
+
 
     def delete(self):
         """删除该组数据 并显示下一条"""
@@ -238,3 +249,7 @@ class MainWindow(QWidget):
 
     def finished(self):
         print('任务结束')
+
+    def clear_statu(self):
+        print('fff')
+        self.status_tag.setText('')

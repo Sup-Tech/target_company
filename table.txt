@@ -1,0 +1,47 @@
+create table areas(
+id integer primary key autoincrement,
+area text unique);
+create table companies(
+id integer primary key autoincrement,
+company_name text unique,
+company_address text,
+company_scale text,
+company_desc text);
+create table jobs(
+id integer primary key autoincrement,
+job_name text,
+job_desc text);
+create table raw_datas(
+id integer primary key autoincrement,
+area_id int,
+company_id int,
+job_id int,
+is_read int default 0,
+foreign key(area_id) references areas(id),
+foreign key(company_id) references companies(id),
+foreign key(job_id) references jobs(id));
+create table final_datas(
+id integer primary key autoincrement,
+possible int,
+note text,
+raw_id int unique,
+map_id int,
+foreign key(raw_id) references raw_datas(id),
+foreign key(map_id) references map_datas(id));
+create table fingerprint(url_md5 text unique);
+
+create table map_datas(
+id integer primary key autoincrement,
+lng int not null,
+lat int not null,
+precise int,
+confidence int,
+comprehension int,
+level text);
+
+drop table raw_datas;
+drop table areas;
+drop table companies;
+drop table jobs;
+drop table final_datas;
+drop table fingerprint;
