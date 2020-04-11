@@ -282,7 +282,6 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.Q = Manager().Queue()
         self.setup_ui()
         self.signal_slots()
 
