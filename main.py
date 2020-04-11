@@ -8,7 +8,7 @@ if __name__ == '__main__':
     # app.setQuitOnLastWindowClosed(False)
     print(sys.platform)
 
-    main_window = MainWindow()
+    main_window = DatasFilterWindow()
     main_window.show()
 
     sys.exit(app.exec_())

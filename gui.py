@@ -32,7 +32,7 @@ class Thread(QThread):
         while True:
             self.mutex.lock()
             if self._isPause:
-                print('run')
+
                 for i in self.results:
                     id = i[0]
                     company_id = i[1]
@@ -40,11 +40,10 @@ class Thread(QThread):
                     item = [id, company_id, job_id]
                     print(item)
                     self.id_pipLine.emit(item)
-                    print('发送item')
                     self.cond.wait(self.mutex)
                     if self._value == len(self.results):
                         self.task_finished.emit()
-                    print('_value', self._value)
+                    print('第{}组'.format(self._value))
                     self.valueChange.emit(self._value)
                     self._value += 1
             self.mutex.unlock()
@@ -169,7 +168,7 @@ class DatasFilterWindow(QWidget):
                 print(e)
             # 筛选出该区域的所有数据
             else:
-                sql = "select id, company_id, job_id from raw_datas where area_id='{}' and is_read=0;".format(area_id)
+                sql = "select id, company_id, job_id from raw_datas where area_id='{}' and is_read=0 order by weight desc;".format(area_id)
                 results = c.execute(sql).fetchall()
                 print(results)
                 total = len(results)
@@ -189,17 +188,15 @@ class DatasFilterWindow(QWidget):
 
     def show_loop(self, e):
         """循环显示"""
-        print('show_loop', e)
         self.Id = e[0]
         company_id = e[1]
         self.jobId = e[2]
         c = self.conn.cursor()
-        sql = "select company_name, company_address, company_scale, company_desc from companies where id='{}';".format(company_id)
+        sql = "select company_name, company_address, company_scale, company_desc from companies where id={};".format(company_id)
         self.company_info = c.execute(sql).fetchone()
-        print(self.company_info)
-        sql = "select job_name, job_desc from jobs where id='{}';".format(self.jobId)
+        sql = "select job_name, job_desc from jobs where id={};".format(self.jobId)
         self.job_info = c.execute(sql).fetchone()
-        print(self.job_info)
+        print(self.company_info, '\n', self.job_info, sep='')
         self.job_name.setText(self.job_info[0].strip())
         self.company_name.setText(self.company_info[0])
         self.company_scale.setText(self.company_info[2])
@@ -220,9 +217,10 @@ class DatasFilterWindow(QWidget):
             c = self.conn.cursor()
             # 获取公司地址的经纬度
             addr = self.company_info[1]
-            ak = 'ysZHXY6AwYQYcXLuhTCkV2a1YvOk5Dm2'
-            url = 'http://api.map.baidu.com/geocoding/v3/?address={}&output=json&ak={}'.format(addr, ak)
-            result = requests.get(url=url).json()['result']
+            result = self.get_position(addr)['result']
+            print('result', result)
+            if result['precise'] == 0:
+                result = self.get_position(self.company_info[0])['result']
             print('result', result)
             # 插入数据到map_datas
             sql = "insert into map_datas(lng, lat, precise, confidence, comprehension, level) " \
@@ -254,9 +252,6 @@ class DatasFilterWindow(QWidget):
             self.status_tag.setText('没有写可能性')
             QTimer.singleShot(2000, self.clear_statu)
 
-
-
-
     def delete(self):
         """删除该组数据 并显示下一条"""
         c = self.conn.cursor()
@@ -265,6 +260,8 @@ class DatasFilterWindow(QWidget):
         sql = "delete from jobs where id={};".format(self.jobId)
         c.execute(sql)
         self.conn.commit()
+        self.note_ledit.clear()
+        self.possible_ledit.clear()
         if self.is_begined and self.process_bar.value() < self.process_bar.maximum():
             self.t.next()
         else:
@@ -272,11 +269,22 @@ class DatasFilterWindow(QWidget):
 
     def finished(self):
         print('任务结束')
+        self.job_name.clear()
+        self.company_name.clear()
+        self.company_scale.clear()
+        self.company_addr.clear()
+        self.company_area.clear()
+        self.note_ledit.clear()
+        self.possible_ledit.clear()
 
     def clear_statu(self):
 
         self.status_tag.setText('')
 
+    def get_position(self, addr):
+        ak = 'ysZHXY6AwYQYcXLuhTCkV2a1YvOk5Dm2'
+        url = 'http://api.map.baidu.com/geocoding/v3/?address={}&output=json&ak={}'.format(addr, ak)
+        return requests.get(url=url).json()
 
 class MainWindow(QMainWindow):
 

@@ -7,28 +7,50 @@ import hashlib
 import sqlite3
 from functools import reduce
 import json
-
+from threading import Lock
 
 class A58Spider(scrapy.Spider):
     name = '58'
     allowed_domains = ['58.com']
     city = input('请输入城市名: ')
     keyword = input('请输入要搜索的职位名称: ')
-    first_url = ''
+    # 权重
+    # company_desc_without_words = input('公司业务介绍里不能有的字词(以空格分隔开)：').split(' ')
+    # company_desc_with_words = input('公司业务介绍里能有的字词(以空格分隔开)：').split(' ')
+    # job_desc_without_words = input('职位介绍里不能有的字词(以空格分隔开)：').split(' ')
+    # job_desc_with_words = input('职位介绍里能有的字词(以空格分隔开)：').split(' ')
+    company_desc_without_words = '专业生产 生产 工厂 专门生产 主要生产'.split(' ')
+    company_desc_with_words = '外贸 出口 跨境 电商 贸易 中小额 批发 零售 进出口'.split(' ')
+    job_desc_without_words = '台账'.split(' ')
+    job_desc_with_words = ' excel 数据 售前 编写商品 产品编码 表格 新品 编码 erp ERP Excel'.split(' ')
     # 一些标志符
     is_final = False
     # 一些计数器
     total = 0
     fingerprint_repeat_error = 0
     company_repeat_error = 0
+    new_company_num = 0
+    new_job_num = 0
+    # 线程锁
+    glock = Lock()
 
     def __init__(self):
         super(A58Spider, self).__init__()
         self.conn = sqlite3.connect('target_company.db')
         print('连接数据库')
         self.c = self.conn.cursor()
+        self.set_area_id()
 
     def start_requests(self):
+        # 处理关键词列表中无效元素
+        while '' in self.company_desc_without_words:
+            self.company_desc_without_words.remove('')
+        while '' in self.company_desc_with_words:
+            self.company_desc_with_words.remove('')
+        while '' in self.job_desc_without_words:
+            self.job_desc_without_words.remove('')
+        while '' in self.job_desc_with_words:
+            self.job_desc_with_words.remove('')
         # 设置无头模式
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
@@ -95,6 +117,7 @@ class A58Spider(scrapy.Spider):
             company_scale = response.xpath('//p[@class="comp_baseInfo_scale"]/text()').get().split('-')[0]
             job_name = response.xpath('//span[@class="pos_title"]/text()').get()
             job_desc = reduce(lambda x, y: x+y, response.xpath('//div[@class="des"]/text()').extract())
+            print('---------\n', company_name, company_scale, company_address, '\n', company_desc, '\n', job_name, '\n', job_desc, '\n---------')
         except Exception as e:
             print(e)
             print(self.fingerprint)
@@ -102,36 +125,25 @@ class A58Spider(scrapy.Spider):
             self.c.execute(sql)
             self.conn.commit()
             time.sleep(8)
+
         # 创建表单变量
-        area_id = ''
         company_id = ''
         job_id = ''
-        # 插入数据到区域表 并获取该区域的id
-        sql = "insert into areas(area) values('{}');".format(self.city)
-        try:
-            self.c.execute(sql)
-        except sqlite3.IntegrityError:
-            pass
-        except Exception as e:
-            print(type(e))
-            sql = "select id from areas where area = '{}';".format(self.city)
-            area_id = self.c.execute(sql).fetchone()[0]
-        else:
-            sql = "select max(id) from areas;"
-            area_id = self.c.execute(sql).fetchone()[0]
-        self.conn.commit()
         # 插入数据到公司信息表 并获取该条目的id
         sql = "insert into companies(company_name, company_address, company_scale, company_desc)" \
               "values('{}', '{}', '{}', '{}');".format(company_name, company_address, company_scale, company_desc)
         try:
             self.c.execute(sql)
         except sqlite3.IntegrityError:
+            # 计数器
             self.company_repeat_error += 1
-        except Exception as e:
-            print(e)
             sql = "select id from companies where company_name = '{}';".format(company_name)
             company_id = self.c.execute(sql).fetchone()[0]
+        except Exception as e:
+            print(e)
         else:
+            # 计数器
+            self.new_company_num += 1
             sql = "select max(id) from companies;"
             company_id = self.c.execute(sql).fetchone()[0]
         # 插入数据到职位数据表 并获取该条目的id
@@ -139,26 +151,53 @@ class A58Spider(scrapy.Spider):
               "values('{}', '{}');".format(job_name, job_desc)
         try:
             self.c.execute(sql)
-        except sqlite3.IntegrityError:
-            pass
         except Exception as e:
             print(e)
         else:
+            self.new_job_num += 1
             sql = "select max(id) from jobs;"
             job_id = self.c.execute(sql).fetchone()[0]
+        # 确定权重
+        self.glock.acquire()
+        self.weight = 0
+        if company_scale == 50 or company_scale == 100:
+            self.weight += 1
+        weight_add = [word in company_desc for word in self.company_desc_with_words] + [word in job_desc for word in self.job_desc_with_words]
+        weight_min = [word in company_desc for word in self.company_desc_without_words] + [word in job_desc for word in self.job_desc_without_words]
+        self.weight += (weight_add.count(True) - weight_min.count(True))
         # 插入爬取数据表数据
-        sql = "insert into raw_datas(area_id, company_id, job_id) " \
-              "values('{}', '{}', '{}');".format(area_id, company_id, job_id)
+        sql = "insert into raw_datas(area_id, company_id, job_id, weight) " \
+              "values({}, {}, {}, {});".format(self.area_id, company_id, job_id, self.weight)
+
+        self.total += 1
         self.c.execute(sql)
         self.conn.commit()
-
+        self.glock.release()
         return
+
+    def set_area_id(self):
+        self.area_id = ''
+        # 插入数据到区域表 并获取该区域的id
+        sql = "insert into areas(area) values('{}');".format(self.city)
+        try:
+            self.c.execute(sql)
+        except sqlite3.IntegrityError:
+            sql = "select id from areas where area = '{}';".format(self.city)
+            self.area_id = self.c.execute(sql).fetchone()[0]
+        except Exception as e:
+            print(type(e))
+        else:
+            sql = "select max(id) from areas;"
+            self.area_id = self.c.execute(sql).fetchone()[0]
+        self.conn.commit()
+
 
     def close(self, spider, reason):
         print('公司重复次数')
         print(self.company_repeat_error)
         print('指纹重复次数')
         print(self.fingerprint_repeat_error)
-
-
-
+        print('插入数据总数')
+        print(self.total)
+        print('新工作数\n', self.new_job_num, sep='')
+        print('新公司数\n', self.new_company_num, sep='')

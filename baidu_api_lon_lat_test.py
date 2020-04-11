@@ -1,5 +1,5 @@
 import requests
-addr = '武义县百花山工业区桂花路66号'
+addr = '武义云林日用金属制品有限公司'
 # http://api.map.baidu.com/geocoding/v3/?address=北京市海淀区上地十街10号&output=json&ak=您的ak&callback=showLocation //GET请求
 ak = 'ysZHXY6AwYQYcXLuhTCkV2a1YvOk5Dm2'
 url = 'http://api.map.baidu.com/geocoding/v3/?address={}&output=json&ak={}'.format(addr, ak)
