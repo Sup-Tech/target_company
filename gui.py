@@ -5,13 +5,6 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex, QTimer
 from model.widgets_models import *
 import sqlite3
 import requests
-from scrapy.crawler import CrawlerProcess
-from multiprocessing import Process, Manager
-import time
-from selenium import webdriver
-import hashlib
-import scrapy
-from functools import reduce
 
 
 class Thread(QThread):
