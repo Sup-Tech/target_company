@@ -5,6 +5,13 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex, QTimer
 from model.widgets_models import *
 import sqlite3
 import requests
+from scrapy.crawler import CrawlerProcess
+from multiprocessing import Process, Manager
+import time
+from selenium import webdriver
+import hashlib
+import scrapy
+from functools import reduce
 
 
 class Thread(QThread):
@@ -15,6 +22,7 @@ class Thread(QThread):
 
     def __init__(self, results, *args, **kwargs):
         super(Thread, self).__init__(*args, **kwargs)
+        # results 是从raw_datas查询的所有数据 一般以城市为条件查询
         self.results = results
         self._isPause = True
         self._value = 1
@@ -281,43 +289,43 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super(MainWindow, self).__init__()
-
+        self.Q = Manager().Queue()
         self.setup_ui()
         self.signal_slots()
 
     def setup_ui(self):
         self.search = QLineEdit()
         self.search.setPlaceholderText('Search')
-        self.start_scrawl_btn = QPushButton('开始爬取')
+        self.crawl_btn = QPushButton('开始爬取')
         self.filter_datas_btn = QPushButton('数据筛选')
-        scrawl_nums_tag = QLabel('此次爬取数量')
-        self.scrawl_nums = QLabel('0')
+        crawl_nums_tag = QLabel('此次爬取数量')
+        self.crawl_nums = QLabel('0')
         repeat_fingerprint_nums_tag = QLabel('重复指纹数量')
         self.repeat_fingerprint_numts = QLabel('0')
-        error_scrawl_nums_tag = QLabel('爬取出错数量')
+        error_crawl_nums_tag = QLabel('爬取出错数量')
         self.error_nums = QLabel('0')
         self.papa_map_btn = QPushButton('爸爸地图')
         layout = QVBoxLayout()
         layout1 = QHBoxLayout()
         layout1.addStretch(0)
         layout1.addWidget(self.search)
-        layout1.addWidget(self.start_scrawl_btn)
+        layout1.addWidget(self.crawl_btn)
         layout1.addStretch(1)
         layout1.addWidget(self.filter_datas_btn)
         layout.addLayout(layout1)
         layout2 = QHBoxLayout()
-        layout2.addWidget(scrawl_nums_tag)
-        layout2.addWidget(self.scrawl_nums)
+        layout2.addWidget(crawl_nums_tag)
+        layout2.addWidget(self.crawl_nums)
         layout2.addWidget(repeat_fingerprint_nums_tag)
         layout2.addWidget(self.repeat_fingerprint_numts)
-        layout2.addWidget(error_scrawl_nums_tag)
+        layout2.addWidget(error_crawl_nums_tag)
         layout2.addWidget(self.error_nums)
         layout2.addStretch(1)
         layout2.addWidget(self.papa_map_btn)
         layout.addLayout(layout2)
-        self.log_printer = QTextBrowser()
+        self.log_browser = QTextBrowser()
         self.process_bar = QProgressBar()
-        layout.addWidget(self.log_printer)
+        layout.addWidget(self.log_browser)
         layout.addWidget(self.process_bar)
 
         central_widget = QWidget(self)
@@ -326,9 +334,35 @@ class MainWindow(QMainWindow):
 
     def signal_slots(self):
         self.filter_datas_btn.clicked.connect(self.open_datas_filter)
+        # self.crawl_btn.clicked.connect(self.start_crawl)
 
     def open_datas_filter(self):
         """打开数据筛选界面"""
         self.data_filter = DatasFilterWindow()
         self.data_filter.show()
 
+
+
+#     def start_crawl(self):
+#         if self.crawl_btn.text() == '开始爬取':
+#             self.crawl_btn.setText('停止爬取')
+#             self.log_browser.clear()
+#             self.p = Process(target=crawl, args=(self.Q, self.search.text()))
+#             self.p.start()
+#         else:
+#             self.crawl_btn.setText('开始爬取')
+#             self.p.terminate()
+#             self.p.kill()
+#
+#
+# def crawl(Q, keywords):
+#     process = CrawlerProcess({
+#       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+#       'Accept-Language': 'en',
+#       'User-Agent':'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36',
+#       'ROBOTSTXT_OBEY' : False,
+#       'LOG_LEVEL' : 'WARNING',
+#       'DOWNLOAD_DELAY' : 2,
+#       'HTTPPROXY_ENABLED': False})
+#     process.crawl(A58Spider, Q=Q, keywords=keywords)
+#     process.start()
