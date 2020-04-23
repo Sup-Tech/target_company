@@ -1,3 +1,5 @@
+import re
+from google_coordinate import get_coordinate
 from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QLabel, \
     QGridLayout, QScrollArea, QScrollBar, QHBoxLayout, QLayout, QSizePolicy, \
     QProgressBar, QStatusBar, QMainWindow
@@ -38,7 +40,7 @@ class Thread(QThread):
                     company_id = i[1]
                     job_id = i[2]
                     item = [id, company_id, job_id]
-                    print(item)
+                    # print(item)
                     self.id_pipLine.emit(item)
                     self.cond.wait(self.mutex)
                     if self._value == len(self.results):
@@ -49,13 +51,14 @@ class Thread(QThread):
             self.mutex.unlock()
 
 
-class DatasFilterWindow(QWidget):
+class DatasFilterWindow(QMainWindow):
 
     def __init__(self):
         super(DatasFilterWindow, self).__init__()
         self.setWindowTitle('数据筛选')
-        self.setFixedSize(650, 600)
+        self.resize(650, 600)
         self.setWindowFlags(Qt.WindowMinimizeButtonHint|Qt.WindowCloseButtonHint)
+        self.setFocus(Qt.MouseFocusReason)
         self.setup_ui()
         self.conn = sqlite3.connect('target_company.db')
         self.signal_slot()
@@ -68,14 +71,13 @@ class DatasFilterWindow(QWidget):
 
     def setup_ui(self):
         # 创建布局
+        layout = QVBoxLayout()
+        layout1 = QHBoxLayout()
+        layout2 = QHBoxLayout()
+        layout3 = QHBoxLayout()
+        layout4 = QHBoxLayout()
+        layout5 = QHBoxLayout()
 
-        layout_1 = QVBoxLayout()
-        layout_1_1 = QHBoxLayout()
-        layout_1_1_1 = QGridLayout()
-        layout_1_1_2 = QGridLayout()
-
-        # 创建QSizePolicy
-        fixed_sp = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         # 创建控件
         company_name_tag = QLabel('公司名称')
         self.company_name = QLabel('')
@@ -87,7 +89,8 @@ class DatasFilterWindow(QWidget):
         self.company_area = QLabel('')
         job_name_tag = QLabel('职位名称')
         self.job_name = QLabel('')
-        self.status_tag = QLabel('')
+        job_url = QLabel('职位链接')
+        self.job_url = QLabel('')
         # QTextBrowser
         self.company_desc_browser = QTextBrowser()
         self.job_desc_browser = QTextBrowser()
@@ -95,59 +98,63 @@ class DatasFilterWindow(QWidget):
         self.note_ledit = QLineEdit()
         self.note_ledit.setPlaceholderText('备注')
         self.possible_ledit = QLineEdit()
+        self.possible_ledit.setFixedWidth(132)
         self.possible_ledit.setPlaceholderText('可能性')
         self.keyword_edit = QLineEdit()
-        self.keyword_edit.setPlaceholderText('城市')
         self.keyword_edit.setFixedWidth(62)
-        self.keyword_edit.setSizePolicy(fixed_sp)
+        self.keyword_edit.setPlaceholderText('城市')
+
         # 按钮
         self.save_btn = QPushButton('保存')
-        self.save_btn.setSizePolicy(fixed_sp)
+        self.save_btn.setContentsMargins(0,0,0,0)
         self.begin_btn = QPushButton('开始')
-        self.begin_btn.setSizePolicy(fixed_sp)
+        self.begin_btn.setContentsMargins(0,0,0,0)
         self.del_btn = QPushButton('删除')
-        self.del_btn.setSizePolicy(fixed_sp)
+        self.del_btn.setContentsMargins(0,0,0,0)
         self.process_bar = QProgressBar()
         self.process_bar.setFormat('%v/%m')
-        # 创建滚动区域 & 滚动条
-        self.scroll_area_company = QScrollArea()
-        scroll_bar_company = QScrollBar()
-        self.scroll_area_job = QScrollArea()
-        scroll_bar_job = QScrollBar()
-        # 添加滚动区域widget对象
-        self.scroll_area_company.setWidget(self.company_desc_browser)
-        self.scroll_area_job.setWidget(self.job_desc_browser)
-        # 添加滚动条
-        self.scroll_area_company.addScrollBarWidget(scroll_bar_company, Qt.AlignLeft)
-        self.scroll_area_job.addScrollBarWidget(scroll_bar_job, Qt.AlignLeft)
-
+        # 状态栏
+        self.status = QStatusBar()
+        self.setStatusBar(self.status)
+        self.status.setStyleSheet('QStatusBar{color:red;}')
         # 布置布局
-        layout_1.addLayout(layout_1_1)
-        layout_1_1.addLayout(layout_1_1_1)
-        layout_1_1_1.addWidget(job_name_tag, 1,1,1,1)
-        layout_1_1_1.addWidget(self.job_name, 1,2,1,3)
-        layout_1_1_1.addWidget(company_name_tag, 2,1,1,1)
-        layout_1_1_1.addWidget(self.company_name, 2,2,1,3)
-        layout_1_1_1.addWidget(company_scale_tag, 3,1,1,1)
-        layout_1_1_1.addWidget(self.company_scale,3,2,1,1)
-        layout_1_1_1.addWidget(company_area_tag, 3,3,1,1)
-        layout_1_1_1.addWidget(self.company_area, 3,4,1,1)
-        layout_1_1_1.addWidget(company_addr_tag, 4,1,1,1)
-        layout_1_1_1.addWidget(self.company_addr, 4,2,1,3)
-        layout_1_1.addLayout(layout_1_1_2)
-        layout_1_1_2.addWidget(self.keyword_edit,1,1,1,1)
-        layout_1_1_2.addWidget(self.begin_btn,1,2,1,1)
-        layout_1_1_2.addWidget(self.note_ledit,2,1,1,2)
-        layout_1_1_2.addWidget(self.possible_ledit,3,1,1,2)
-        layout_1_1_2.addWidget(self.save_btn,4,1,1,1)
-        layout_1_1_2.addWidget(self.del_btn,4,2,1,1)
 
-        layout_1.addWidget(self.company_desc_browser)
-        layout_1.addWidget(self.job_desc_browser)
-        layout_1.addWidget(self.process_bar)
-        layout_1.addWidget(self.status_tag,Qt.AlignCenter)
+        layout.addLayout(layout1)
+        layout1.addWidget(job_name_tag)
+        layout1.addWidget(self.job_name)
+        layout1.addStretch(1)
+        layout1.addWidget(self.keyword_edit)
+        layout1.addWidget(self.begin_btn)
+        layout.addLayout(layout2)
+        layout2.addWidget(company_name_tag)
+        layout2.addWidget(self.company_name)
+        layout2.addStretch(1)
+        layout2.addWidget(self.note_ledit, 1)
+        layout.addLayout(layout3)
+        layout3.addWidget(company_scale_tag)
+        layout3.addWidget(self.company_scale)
+        layout3.addStretch(1)
+        layout3.addWidget(company_area_tag)
+        layout3.addWidget(self.company_area)
+        layout3.addStretch(3)
+        layout3.addWidget(self.possible_ledit)
+        layout.addLayout(layout4)
+        layout4.addWidget(company_addr_tag)
+        layout4.addWidget(self.company_addr)
+        layout4.addStretch(1)
+        layout4.addWidget(self.save_btn)
+        layout4.addWidget(self.del_btn)
+        layout.addLayout(layout5)
+        layout5.addWidget(job_url)
+        layout5.addWidget(self.job_url)
 
-        self.setLayout(layout_1)
+        layout.addWidget(self.company_desc_browser)
+        layout.addWidget(self.job_desc_browser)
+        layout.addWidget(self.process_bar)
+
+        center_widget = QWidget()
+        center_widget.setLayout(layout)
+        self.setCentralWidget(center_widget)
 
     def signal_slot(self):
         self.save_btn.clicked.connect(self.save)
@@ -160,6 +167,7 @@ class DatasFilterWindow(QWidget):
         city = self.keyword_edit.text()
         if city:
             sql = "select id from areas where area='{}';".format(city)
+            print(sql)
             try:
                 area_id = c.execute(sql).fetchone()[0]
             except IndexError:
@@ -170,8 +178,8 @@ class DatasFilterWindow(QWidget):
             else:
                 sql = "select id, company_id, job_id from raw_datas where area_id='{}' and is_read=0 order by weight desc;".format(area_id)
                 results = c.execute(sql).fetchall()
-                print(results)
                 total = len(results)
+                self.status.showMessage('数据量:{}'.format(total), 10000)
                 self.process_bar.setMaximum(total)
                 # 主要效果 阻塞for循环 通过按钮解除阻塞
                 self.t = Thread(results)
@@ -194,16 +202,19 @@ class DatasFilterWindow(QWidget):
         c = self.conn.cursor()
         sql = "select company_name, company_address, company_scale, company_desc from companies where id={};".format(company_id)
         self.company_info = c.execute(sql).fetchone()
-        sql = "select job_name, job_desc from jobs where id={};".format(self.jobId)
+        sql = "select job_name, job_desc, job_url from jobs where id={};".format(self.jobId)
         self.job_info = c.execute(sql).fetchone()
-        print(self.company_info, '\n', self.job_info, sep='')
-        self.job_name.setText(self.job_info[0].strip())
-        self.company_name.setText(self.company_info[0])
-        self.company_scale.setText(self.company_info[2])
-        self.company_area.setText(self.area)
-        self.company_addr.setText(self.company_info[1])
-        self.company_desc_browser.setPlainText(self.company_info[-1])
-        self.job_desc_browser.setPlainText(self.job_info[1])
+        # print(self.company_info, '\n', self.job_info, sep='')
+        if self.company_info and self.job_info:
+            self.job_name.setText(self.job_info[0].strip())
+            self.company_name.setText(self.company_info[0])
+            self.company_scale.setText(self.company_info[2])
+            self.company_area.setText(self.area)
+            self.company_addr.setText(self.company_info[1])
+            self.company_desc_browser.setPlainText(self.company_info[-1])
+            self.job_desc_browser.setPlainText(self.job_info[1])
+        # todo:职位链接太长
+        # self.job_url.setText(self.job_info[2])
 
     def save(self):
         """
@@ -217,21 +228,22 @@ class DatasFilterWindow(QWidget):
             c = self.conn.cursor()
             # 获取公司地址的经纬度
             addr = self.company_info[1]
-            result = self.get_position(addr)['result']
+            result = get_coordinate(addr)
             print('result', result)
-            if result['precise'] == 0:
-                result = self.get_position(self.company_info[0])['result']
-            print('result', result)
+            if not result:
+                self.status.showMessage('抱歉无法获取该位置定位', 3000)
+                return
+            elif result['precise'] == 0:
+                self.status.showMessage('该位置的坐标准确性未知', 3000)
+
             # 插入数据到map_datas
-            sql = "insert into map_datas(lng, lat, precise, confidence, comprehension, level) " \
-                  "values({}, {}, {}, {}, {}, '{}');".format(result['location']['lng'], result['location']['lat'],
-                                                             result['precise'], result['confidence'],
-                                                             result['comprehension'], result['level'])
+            sql = "insert into map_datas(locate_addr, lat, lng, precise) " \
+                  "values('{}', {}, {}, {});".format(result['locate_addr'], result['lat'],
+                                                     result['lng'], result['precise'])
             c.execute(sql)
             # 获取刚刚插入数据的map_id
             sql = "select max(id) from map_datas;"
             max_map_id = c.execute(sql).fetchone()[0]
-            print('max_map_id', max_map_id)
             # 插入数据到final_datas
             sql = "insert into final_datas(possible, note, raw_id, map_id) values('{}','{}',{}, {});".format(possible, note, self.Id, max_map_id)
             c.execute(sql)
@@ -249,8 +261,7 @@ class DatasFilterWindow(QWidget):
                 print('没有next了')
         else:
             # 提醒没有填写可能性
-            self.status_tag.setText('没有写可能性')
-            QTimer.singleShot(2000, self.clear_statu)
+            self.status.showMessage('没填可能性', 3000)
 
     def delete(self):
         """删除该组数据 并显示下一条"""
@@ -268,7 +279,7 @@ class DatasFilterWindow(QWidget):
             print('没有next了')
 
     def finished(self):
-        print('任务结束')
+        self.status.showMessage('任务结束', 5000)
         self.job_name.clear()
         self.company_name.clear()
         self.company_scale.clear()
@@ -276,15 +287,19 @@ class DatasFilterWindow(QWidget):
         self.company_area.clear()
         self.note_ledit.clear()
         self.possible_ledit.clear()
-
-    def clear_statu(self):
-
-        self.status_tag.setText('')
+        self.company_desc_browser.clear()
+        self.job_desc_browser.clear()
 
     def get_position(self, addr):
+        """
+        百度坐标系获取
+        :param addr:
+        :return:
+        """
         ak = 'ysZHXY6AwYQYcXLuhTCkV2a1YvOk5Dm2'
         url = 'http://api.map.baidu.com/geocoding/v3/?address={}&output=json&ak={}'.format(addr, ak)
         return requests.get(url=url).json()
+
 
 class MainWindow(QMainWindow):
 

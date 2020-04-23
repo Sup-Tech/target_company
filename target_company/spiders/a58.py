@@ -9,6 +9,7 @@ from functools import reduce
 import json
 from threading import Lock
 
+
 class A58Spider(scrapy.Spider):
     name = '58'
     allowed_domains = ['58.com']
@@ -19,7 +20,9 @@ class A58Spider(scrapy.Spider):
     # company_desc_with_words = input('公司业务介绍里能有的字词(以空格分隔开)：').split(' ')
     # job_desc_without_words = input('职位介绍里不能有的字词(以空格分隔开)：').split(' ')
     # job_desc_with_words = input('职位介绍里能有的字词(以空格分隔开)：').split(' ')
-    company_desc_without_words = '专业生产 生产 工厂 专门生产 主要生产'.split(' ')
+    company_name_without_words = '厂 工贸 制品 用品 制造'.split(' ')
+    company_name_with_words = '进出口 科技'.split(' ')
+    company_desc_without_words = '淘宝 专业生产 生产 工厂 专门生产 主要生产'.split(' ')
     company_desc_with_words = '外贸 出口 跨境 电商 贸易 中小额 批发 零售 进出口'.split(' ')
     job_desc_without_words = '台账'.split(' ')
     job_desc_with_words = ' excel 数据 售前 编写商品 产品编码 表格 新品 编码 erp ERP Excel'.split(' ')
@@ -117,7 +120,7 @@ class A58Spider(scrapy.Spider):
             company_scale = response.xpath('//p[@class="comp_baseInfo_scale"]/text()').get().split('-')[0]
             job_name = response.xpath('//span[@class="pos_title"]/text()').get()
             job_desc = reduce(lambda x, y: x+y, response.xpath('//div[@class="des"]/text()').extract())
-            print('---------\n', company_name, company_scale, company_address, '\n', company_desc, '\n', job_name, '\n', job_desc, '\n---------')
+            print('---------\n', company_name, company_scale, company_address, '\n', company_desc, '\n', job_name, '\n', job_desc, '\n---------', sep='')
         except Exception as e:
             print(e)
             print(self.fingerprint)
@@ -125,7 +128,8 @@ class A58Spider(scrapy.Spider):
             self.c.execute(sql)
             self.conn.commit()
             time.sleep(8)
-
+        if True in [word in company_name for word in self.company_name_without_words]:
+            return
         # 创建表单变量
         company_id = ''
         job_id = ''
@@ -160,11 +164,12 @@ class A58Spider(scrapy.Spider):
         # 确定权重
         self.glock.acquire()
         self.weight = 0
-        if company_scale == 50 or company_scale == 100:
+        if company_scale == '50' or company_scale == '100':
             self.weight += 1
-        weight_add = [word in company_desc for word in self.company_desc_with_words] + [word in job_desc for word in self.job_desc_with_words]
+        weight_add = [word in company_desc for word in self.company_desc_with_words]
+        weight_add2 = [word in job_desc for word in self.job_desc_with_words]
         weight_min = [word in company_desc for word in self.company_desc_without_words] + [word in job_desc for word in self.job_desc_without_words]
-        self.weight += (weight_add.count(True) - weight_min.count(True))
+        self.weight += (weight_add.count(True) + weight_add2.count(True)*5 - weight_min.count(True))
         # 插入爬取数据表数据
         sql = "insert into raw_datas(area_id, company_id, job_id, weight) " \
               "values({}, {}, {}, {});".format(self.area_id, company_id, job_id, self.weight)
@@ -190,7 +195,6 @@ class A58Spider(scrapy.Spider):
             sql = "select max(id) from areas;"
             self.area_id = self.c.execute(sql).fetchone()[0]
         self.conn.commit()
-
 
     def close(self, spider, reason):
         print('公司重复次数')

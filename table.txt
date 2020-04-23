@@ -10,7 +10,8 @@ company_desc text);
 create table jobs(
 id integer primary key autoincrement,
 job_name text,
-job_desc text);
+job_desc text,
+job_url text);
 create table raw_datas(
 id integer primary key autoincrement,
 area_id int,
@@ -43,9 +44,15 @@ drop table map_datas;
 
 create table map_datas(
 id integer primary key autoincrement,
-lng int not null,
+locate_addr text,
 lat int not null,
-precise int,
-confidence int,
-comprehension int,
-level text);
+lng int not null,
+precise int);
+
+# 在删除map_datas后，将已经处理完的条目——也就是final_datas中的条目,对应的raw_datas条目的is_read 归零 如此以来 可以重新出现在处理器中
+update raw_datas set is_read=0 where id in (select id from raw_datas where id in (select raw_id from final_datas));
+# 删除final_datas 所有数据 并将递增数归零    sqlite_sequence 是存储各个数据表的递增数的表
+delete from final_datas;
+DELETE FROM sqlite_sequence WHERE name = 'final_datas';
+# 删除第144行开始包括144行在内的后19行数据
+delete from fingerprint where url_md5 in (select * from fingerprint limit 19 offset 143);
