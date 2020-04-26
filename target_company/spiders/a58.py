@@ -13,28 +13,29 @@ from threading import Lock
 class A58Spider(scrapy.Spider):
     name = 'job58'
     allowed_domains = ['58.com']
-
-    # 权重
-    # company_desc_without_words = input('公司业务介绍里不能有的字词(以空格分隔开)：').split(' ')
-    # company_desc_with_words = input('公司业务介绍里能有的字词(以空格分隔开)：').split(' ')
-    # job_desc_without_words = input('职位介绍里不能有的字词(以空格分隔开)：').split(' ')
-    # job_desc_with_words = input('职位介绍里能有的字词(以空格分隔开)：').split(' ')
-    company_name_without_words = '厂 工贸 制品 用品 制造'.split(' ')
-    company_name_with_words = '进出口 科技'.split(' ')
-    company_desc_without_words = '淘宝 专业生产 生产 工厂 专门生产 主要生产'.split(' ')
-    company_desc_with_words = '外贸 出口 跨境 电商 贸易 中小额 批发 零售 进出口'.split(' ')
-    job_desc_without_words = '台账'.split(' ')
-    job_desc_with_words = ' excel 数据 售前 编写商品 产品编码 表格 新品 编码 erp ERP Excel'.split(' ')
-    # 一些标志符
-    is_final = False
-    # 一些计数器
-    total = 0
-    fingerprint_repeat_error = 0
-    company_repeat_error = 0
-    new_company_num = 0
-    new_job_num = 0
-    # 线程锁
-    glock = Lock()
+    def __init__(self):
+        super(A58Spider, self).__init__()
+        # 权重
+        # company_desc_without_words = input('公司业务介绍里不能有的字词(以空格分隔开)：').split(' ')
+        # company_desc_with_words = input('公司业务介绍里能有的字词(以空格分隔开)：').split(' ')
+        # job_desc_without_words = input('职位介绍里不能有的字词(以空格分隔开)：').split(' ')
+        # job_desc_with_words = input('职位介绍里能有的字词(以空格分隔开)：').split(' ')
+        self.c_name_without_words = '厂 工贸 制品 用品 制造'.split(' ')
+        self.c_name_with_words = '进出口 科技'.split(' ')
+        self.c_desc_without_words = '淘宝 专业生产 生产 工厂 专门生产 主要生产'.split(' ')
+        self.c_desc_with_words = '外贸 出口 跨境 电商 贸易 中小额 批发 零售 进出口'.split(' ')
+        self.job_desc_without_words = '台账'.split(' ')
+        self.job_desc_with_words = ' excel 数据 售前 编写商品 产品编码 表格 新品 编码 erp ERP Excel'.split(' ')
+        # 一些标志符
+        self.is_final = False
+        # 一些计数器
+        self.total = 0
+        self.fingerprint_repeat_error = 0
+        self.company_repeat_error = 0
+        self.new_company_num = 0
+        self.new_job_num = 0
+        # 线程锁
+        self.glock = Lock()
 
     def __init__(self):
         super(A58Spider, self).__init__()
@@ -47,10 +48,10 @@ class A58Spider(scrapy.Spider):
 
     def start_requests(self):
         # 处理关键词列表中无效元素
-        while '' in self.company_desc_without_words:
-            self.company_desc_without_words.remove('')
-        while '' in self.company_desc_with_words:
-            self.company_desc_with_words.remove('')
+        while '' in self.c_desc_without_words:
+            self.c_desc_without_words.remove('')
+        while '' in self.c_desc_with_words:
+            self.c_desc_with_words.remove('')
         while '' in self.job_desc_without_words:
             self.job_desc_without_words.remove('')
         while '' in self.job_desc_with_words:
@@ -129,7 +130,7 @@ class A58Spider(scrapy.Spider):
             self.c.execute(sql)
             self.conn.commit()
             time.sleep(8)
-        if True in [word in company_name for word in self.company_name_without_words]:
+        if True in [word in company_name for word in self.c_name_without_words]:
             return
         # 创建表单变量
         company_id = ''
@@ -167,9 +168,9 @@ class A58Spider(scrapy.Spider):
         self.weight = 0
         if company_scale == '50' or company_scale == '100':
             self.weight += 1
-        weight_add = [word in company_desc for word in self.company_desc_with_words]
+        weight_add = [word in company_desc for word in self.c_desc_with_words]
         weight_add2 = [word in job_desc for word in self.job_desc_with_words]
-        weight_min = [word in company_desc for word in self.company_desc_without_words] + [word in job_desc for word in self.job_desc_without_words]
+        weight_min = [word in company_desc for word in self.c_desc_without_words] + [word in job_desc for word in self.job_desc_without_words]
         self.weight += (weight_add.count(True) + weight_add2.count(True)*5 - weight_min.count(True))
         # 插入爬取数据表数据
         sql = "insert into raw_datas(area_id, company_id, job_id, weight) " \
