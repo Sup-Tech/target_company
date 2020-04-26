@@ -11,10 +11,9 @@ from threading import Lock
 
 
 class A58Spider(scrapy.Spider):
-    name = '58'
+    name = 'job58'
     allowed_domains = ['58.com']
-    city = input('请输入城市名: ')
-    keyword = input('请输入要搜索的职位名称: ')
+
     # 权重
     # company_desc_without_words = input('公司业务介绍里不能有的字词(以空格分隔开)：').split(' ')
     # company_desc_with_words = input('公司业务介绍里能有的字词(以空格分隔开)：').split(' ')
@@ -40,6 +39,8 @@ class A58Spider(scrapy.Spider):
     def __init__(self):
         super(A58Spider, self).__init__()
         self.conn = sqlite3.connect('target_company.db')
+        city = input('请输入城市名: ')
+        keyword = input('请输入要搜索的职位名称: ')
         print('连接数据库')
         self.c = self.conn.cursor()
         self.set_area_id()
