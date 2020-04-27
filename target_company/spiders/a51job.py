@@ -13,6 +13,7 @@ import sqlite3
 class A51jobSpider(scrapy.Spider):
     name = 'job51'
     allowed_domains = ['51job.com']
+
     def __init__(self):
         super(A51jobSpider, self).__init__()
         self.i = 0
@@ -27,11 +28,11 @@ class A51jobSpider(scrapy.Spider):
         try:
             self.city_id = self.c.execute(sql).fetchone()[0]
         except Exception as e:
-            raise(e)
             sql = 'insert into areas(area) values("{}");'.format(self.city)
             self.c.execute(sql)
             sql = 'select max(id) from areas;'
             self.city_id = self.c.execute(sql).fetchone()[0]
+            raise(e)
         finally:
             self.conn.commit()
 

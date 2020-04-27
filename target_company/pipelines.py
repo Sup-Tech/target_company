@@ -14,7 +14,6 @@ class TargetCompanyPipeline(object):
     def open_spider(self, spider):
         """爬虫开始时执行一次，链接数据库"""
         self.conn = sqlite3.connect('target_company.db')
-        print('连接数据库')
         self.c = self.conn.cursor()
 
     def process_item(self, item, spider):

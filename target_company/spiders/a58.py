@@ -13,6 +13,7 @@ from threading import Lock
 class A58Spider(scrapy.Spider):
     name = 'job58'
     allowed_domains = ['58.com']
+
     def __init__(self):
         super(A58Spider, self).__init__()
         # 权重
@@ -36,13 +37,10 @@ class A58Spider(scrapy.Spider):
         self.new_job_num = 0
         # 线程锁
         self.glock = Lock()
-
-    def __init__(self):
-        super(A58Spider, self).__init__()
+        # 连接数据库
         self.conn = sqlite3.connect('target_company.db')
-        city = input('请输入城市名: ')
-        keyword = input('请输入要搜索的职位名称: ')
-        print('连接数据库')
+        self.city = input('请输入城市名: ')
+        self.keyword = input('请输入要搜索的职位名称: ')
         self.c = self.conn.cursor()
         self.set_area_id()
 

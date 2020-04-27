@@ -5,6 +5,7 @@ import scrapy
 class ZhaopinSpider(scrapy.Spider):
     name = 'zhaopin'
     allowed_domains = ['zhaopin.com']
+
     def __init__(self):
         super(ZhaopinSpider, self).__init__()
         city = input('请输入城市: ')
