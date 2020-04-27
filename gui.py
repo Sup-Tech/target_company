@@ -1,12 +1,14 @@
+import sys
 import re
 from google_coordinate import get_coordinate
-from PyQt5.QtWidgets import QWidget, QPushButton, QLineEdit, QLabel, \
-    QGridLayout, QScrollArea, QScrollBar, QHBoxLayout, QLayout, QSizePolicy, \
-    QProgressBar, QStatusBar, QMainWindow
+from PyQt5.QtWidgets import QPushButton, QLineEdit, QLabel, \
+    QHBoxLayout, QProgressBar, QStatusBar, QMainWindow, QShortcut, QApplication
+from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex, QTimer
 from model.widgets_models import *
 import sqlite3
 import requests
+from common.style_tool import StyleTool
 
 
 class Thread(QThread):
@@ -55,6 +57,8 @@ class DatasFilterWindow(QMainWindow):
 
     def __init__(self):
         super(DatasFilterWindow, self).__init__()
+        self.setObjectName('MainWindow')
+        self.setStyleSheet(StyleTool.readQSS('./style_bright.qss'))
         self.setWindowTitle('数据筛选')
         self.resize(650, 600)
         self.setWindowFlags(Qt.WindowMinimizeButtonHint|Qt.WindowCloseButtonHint)
@@ -111,6 +115,7 @@ class DatasFilterWindow(QMainWindow):
         self.begin_btn.setContentsMargins(0,0,0,0)
         self.del_btn = QPushButton('删除')
         self.del_btn.setContentsMargins(0,0,0,0)
+        # 进度栏
         self.process_bar = QProgressBar()
         self.process_bar.setFormat('%v/%m')
         # 状态栏
@@ -160,12 +165,22 @@ class DatasFilterWindow(QMainWindow):
         self.save_btn.clicked.connect(self.save)
         self.del_btn.clicked.connect(self.delete)
         self.begin_btn.clicked.connect(self.begin)
+        # self.begin_btn.setShortcut(_translate('MainWindow', 'Enter'))
+        self.del_shortcut = QShortcut(QKeySequence('Ctrl+D'), self)
+        self.del_shortcut.activated.connect(self.delete)
+        self.begin_sc = QShortcut(QKeySequence('ctrl+b'), self)
+        self.begin_sc.activated.connect(self.begin)
+        self.quit_sc = QShortcut(QKeySequence('Meta+q'), self)
+        self.quit_sc.activated.connect(lambda: sys.exit(QApplication(sys.argv).exec_()))
+        self.save_sc = QShortcut(QKeySequence('ctrl+s'), self)
+        self.save_sc.activated.connect(self.save)
 
     def begin(self):
         c = self.conn.cursor()
         # 根据输入的城市 获取对应的城市数据
         city = self.keyword_edit.text()
         if city:
+            self.keyword_edit.clearFocus()
             sql = "select id from areas where area='{}';".format(city)
             print(sql)
             try:
@@ -228,19 +243,24 @@ class DatasFilterWindow(QMainWindow):
             c = self.conn.cursor()
             # 获取公司地址的经纬度
             addr = self.company_info[1]
-            result = get_coordinate(addr)
-            print('result', result)
-            if not result:
-                self.status.showMessage('抱歉无法获取该位置定位', 3000)
+            try:
+                result = get_coordinate(addr)
+            except requests.exceptions.ConnectTimeout:
+                self.status.showMessage('获取坐标超时，请检查网络连接', 5000)
                 return
-            elif result['precise'] == 0:
-                self.status.showMessage('该位置的坐标准确性未知', 3000)
+            else:
+                print('result', result)
+                if not result:
+                    self.status.showMessage('抱歉无法获取该位置定位', 3000)
+                    return
+                elif result['precise'] == 0:
+                    self.status.showMessage('该位置的坐标准确性未知', 3000)
 
-            # 插入数据到map_datas
-            sql = "insert into map_datas(locate_addr, lat, lng, precise) " \
-                  "values('{}', {}, {}, {});".format(result['locate_addr'], result['lat'],
-                                                     result['lng'], result['precise'])
-            c.execute(sql)
+                # 插入数据到map_datas
+                sql = "insert into map_datas(locate_addr, lat, lng, precise) " \
+                      "values('{}', {}, {}, {});".format(result['locate_addr'], result['lat'],
+                                                         result['lng'], result['precise'])
+                c.execute(sql)
             # 获取刚刚插入数据的map_id
             sql = "select max(id) from map_datas;"
             max_map_id = c.execute(sql).fetchone()[0]

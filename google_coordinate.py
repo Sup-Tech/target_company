@@ -15,7 +15,7 @@ def get_coordinate(address):
     door_num = pattern.findall(address)
     url = 'https://maps.googleapis.com/maps/api/geocode/json'
     params = dict(address=address, key='AIzaSyCqqcCYWYsNPjxgne900z5CGMmO0FF7iIM', language='zh')
-    response = requests.get(url, params=params)
+    response = requests.get(url, params=params, timeout=5)
     item = {}
     for result in response.json()['results']:
         print(result)
