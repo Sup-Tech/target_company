@@ -56,3 +56,10 @@ delete from final_datas;
 DELETE FROM sqlite_sequence WHERE name = 'final_datas';
 # 删除第144行开始包括144行在内的后19行数据
 delete from fingerprint where url_md5 in (select * from fingerprint limit 19 offset 143);
+# 将职位名中包含关键词xxx的数据标为已读
+update raw_datas set is_read=1 where job_id in (select id from jobs where job_name like '%跟单%');
+# 将公司名中包含关键词xxx的数据标为已读
+update raw_datas set is_read=1 where company_id in (select id from companies where company_name like '%跟单%');
+
+# 可视化部分 数据查询
+select * from raw_datas where id in (select raw_id from final_datas);

@@ -54,6 +54,7 @@ class Thread(QThread):
 
 
 class DatasFilterWindow(QMainWindow):
+    manual_get_coor = pyqtSignal()
 
     def __init__(self):
         super(DatasFilterWindow, self).__init__()
@@ -95,6 +96,8 @@ class DatasFilterWindow(QMainWindow):
         self.job_name = QLabel('')
         job_url = QLabel('职位链接')
         self.job_url = QLabel('')
+        coordinate_tag = QLabel('经纬度')
+        self.coordinate = QLineEdit()
         # QTextBrowser
         self.company_desc_browser = QTextBrowser()
         self.job_desc_browser = QTextBrowser()
@@ -152,6 +155,9 @@ class DatasFilterWindow(QMainWindow):
         layout.addLayout(layout5)
         layout5.addWidget(job_url)
         layout5.addWidget(self.job_url)
+        layout5.addStretch(1)
+        layout5.addWidget(coordinate_tag)
+        layout5.addWidget(self.coordinate)
 
         layout.addWidget(self.company_desc_browser)
         layout.addWidget(self.job_desc_browser)
@@ -174,6 +180,7 @@ class DatasFilterWindow(QMainWindow):
         self.quit_sc.activated.connect(lambda: sys.exit(QApplication(sys.argv).exec_()))
         self.save_sc = QShortcut(QKeySequence('ctrl+s'), self)
         self.save_sc.activated.connect(self.save)
+        self.manual_get_coor.connect(self.manual_save_coor)
 
     def begin(self):
         c = self.conn.cursor()
@@ -252,15 +259,15 @@ class DatasFilterWindow(QMainWindow):
                 print('result', result)
                 if not result:
                     self.status.showMessage('抱歉无法获取该位置定位', 3000)
-                    return
+                    self.manual_get_coor.emit()
                 elif result['precise'] == 0:
                     self.status.showMessage('该位置的坐标准确性未知', 3000)
-
-                # 插入数据到map_datas
-                sql = "insert into map_datas(locate_addr, lat, lng, precise) " \
-                      "values('{}', {}, {}, {});".format(result['locate_addr'], result['lat'],
-                                                         result['lng'], result['precise'])
-                c.execute(sql)
+                else:
+                    # 插入数据到map_datas
+                    sql = "insert into map_datas(locate_addr, lat, lng, precise) " \
+                          "values('{}', {}, {}, {});".format(result['locate_addr'], result['lat'],
+                                                             result['lng'], result['precise'])
+                    c.execute(sql)
             # 获取刚刚插入数据的map_id
             sql = "select max(id) from map_datas;"
             max_map_id = c.execute(sql).fetchone()[0]
@@ -274,6 +281,8 @@ class DatasFilterWindow(QMainWindow):
             # 清除输入控件当前的数据
             self.note_ledit.clear()
             self.possible_ledit.clear()
+            self.coordinate.clear()
+            self.possible_ledit.clearFocus()
             # 检测当前城市是否还有未筛选的数据组
             if self.is_begined and self.process_bar.value() < self.process_bar.maximum():
                 self.t.next()
@@ -287,7 +296,11 @@ class DatasFilterWindow(QMainWindow):
         """删除该组数据 并显示下一条"""
         c = self.conn.cursor()
         sql = "delete from raw_datas where id={};".format(self.Id)
-        c.execute(sql)
+        try:
+            c.execute(sql)
+        except sqlite3.OperationalError:
+            self.status.showMessage('当前没有数据', 3000)
+            return
         sql = "delete from jobs where id={};".format(self.jobId)
         c.execute(sql)
         self.conn.commit()
@@ -319,6 +332,20 @@ class DatasFilterWindow(QMainWindow):
         ak = 'ysZHXY6AwYQYcXLuhTCkV2a1YvOk5Dm2'
         url = 'http://api.map.baidu.com/geocoding/v3/?address={}&output=json&ak={}'.format(addr, ak)
         return requests.get(url=url).json()
+
+    def manual_save_coor(self):
+        result = self.coordinate.text()
+        if result:
+            c = self.conn.cursor()
+            # 插入数据到map_datas
+            result = result.split(',')
+            sql = "insert into map_datas(lat, lng) " \
+                  "values('{}', {});".format(float(result[0].strip()), float(result[1].strip()))
+            c.execute(sql)
+            self.conn.commit()
+            self.status.showMessage('已手动定位', 3000)
+        else:
+            return
 
 
 class MainWindow(QMainWindow):
