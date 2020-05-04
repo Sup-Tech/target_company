@@ -1,5 +1,6 @@
 import sys
-import re
+from map import save_map
+from sql_funcs import get_datas
 from google_coordinate import get_coordinate
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QLabel, \
     QHBoxLayout, QProgressBar, QStatusBar, QMainWindow, QShortcut, QApplication
@@ -118,6 +119,8 @@ class DatasFilterWindow(QMainWindow):
         self.begin_btn.setContentsMargins(0,0,0,0)
         self.del_btn = QPushButton('删除')
         self.del_btn.setContentsMargins(0,0,0,0)
+        self.view_final_result_btn = QPushButton('查看筛选结果')
+
         # 进度栏
         self.process_bar = QProgressBar()
         self.process_bar.setFormat('%v/%m')
@@ -133,6 +136,7 @@ class DatasFilterWindow(QMainWindow):
         layout1.addStretch(1)
         layout1.addWidget(self.keyword_edit)
         layout1.addWidget(self.begin_btn)
+        layout1.addWidget(self.view_final_result_btn)
         layout.addLayout(layout2)
         layout2.addWidget(company_name_tag)
         layout2.addWidget(self.company_name)
@@ -171,6 +175,7 @@ class DatasFilterWindow(QMainWindow):
         self.save_btn.clicked.connect(self.save)
         self.del_btn.clicked.connect(self.delete)
         self.begin_btn.clicked.connect(self.begin)
+        self.view_final_result_btn.clicked.connect(self.view_final_result)
         # self.begin_btn.setShortcut(_translate('MainWindow', 'Enter'))
         self.del_shortcut = QShortcut(QKeySequence('Ctrl+D'), self)
         self.del_shortcut.activated.connect(self.delete)
@@ -347,6 +352,9 @@ class DatasFilterWindow(QMainWindow):
         else:
             return
 
+    def view_final_result(self):
+        save_map(get_datas())
+
 
 class MainWindow(QMainWindow):
 
@@ -404,7 +412,8 @@ class MainWindow(QMainWindow):
         self.data_filter.show()
 
 
-
+class VisualizationWindow(QWidget):
+    pass
 #     def start_crawl(self):
 #         if self.crawl_btn.text() == '开始爬取':
 #             self.crawl_btn.setText('停止爬取')

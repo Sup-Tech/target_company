@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<head>    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.5.1/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.5.1/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://rawcdn.githack.com/python-visualization/folium/master/folium/templates/leaflet.awesome.rotate.css"/>
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_b0227836c14b4f568ec14cd0f5093b68 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+            </style>
+        
+</head>
+<body>    
+    
+            <div class="folium-map" id="map_b0227836c14b4f568ec14cd0f5093b68" ></div>
+        
+</body>
+<script>    
+    
+            var map_b0227836c14b4f568ec14cd0f5093b68 = L.map(
+                "map_b0227836c14b4f568ec14cd0f5093b68",
+                {
+                    center: [30.251356678317297, 120.20484924316406],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 11,
+                    zoomControl: true,
+                    preferCanvas: false,
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_b80869a323b34b29865e28a8b4b03f64 = L.tileLayer(
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {"attribution": "Data by \u0026copy; \u003ca href=\"http://openstreetmap.org\"\u003eOpenStreetMap\u003c/a\u003e, under \u003ca href=\"http://www.openstreetmap.org/copyright\"\u003eODbL\u003c/a\u003e.", "detectRetina": false, "maxNativeZoom": 18, "maxZoom": 18, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
+            ).addTo(map_b0227836c14b4f568ec14cd0f5093b68);
+        
+    
+            var marker_51ce6092e97f4a3680d0feaa0ab34f82 = L.marker(
+                [28.889546, 120.061218],
+                {}
+            ).addTo(map_b0227836c14b4f568ec14cd0f5093b68);
+        
+    
+        var popup_fe6685eed8574893ba975d050a258be0 = L.popup({"maxWidth": 500});
+
+        
+            var html_b7e86e61057947399150056f07d7b8b3 = $(`<div id="html_b7e86e61057947399150056f07d7b8b3" style="width: 100.0%; height: 100.0%;"><p>定位: 中国浙江省金华市永康市五湖路<br>公司地址：永康永康市区东城街道总部中心金族大厦<br>可能性: 30<br>备注: 无<br>定位可信度: 4</p></div>`)[0];
+            popup_fe6685eed8574893ba975d050a258be0.setContent(html_b7e86e61057947399150056f07d7b8b3);
+        
+
+        marker_51ce6092e97f4a3680d0feaa0ab34f82.bindPopup(popup_fe6685eed8574893ba975d050a258be0)
+        ;
+
+        
+    
+    
+            marker_51ce6092e97f4a3680d0feaa0ab34f82.bindTooltip(
+                `<div>
+                     永康市兴茂进出口有限公司
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_7e908518b2b94fa6b394afb0ea7edfba = L.marker(
+                [28.887584, 120.063428],
+                {}
+            ).addTo(map_b0227836c14b4f568ec14cd0f5093b68);
+        
+    
+        var popup_da78c71d8bbd4833809b7dd3e4b8e69e = L.popup({"maxWidth": 500});
+
+        
+            var html_e5140bd5c60a45a9bcada1b9b1a04ae7 = $(`<div id="html_e5140bd5c60a45a9bcada1b9b1a04ae7" style="width: 100.0%; height: 100.0%;"><p>定位: 中国浙江省金华市永康市五湖路<br>公司地址：永康市国际会展中心办公大楼6326-6329<br>可能性: 10<br>备注: 无<br>定位可信度: 4</p></div>`)[0];
+            popup_da78c71d8bbd4833809b7dd3e4b8e69e.setContent(html_e5140bd5c60a45a9bcada1b9b1a04ae7);
+        
+
+        marker_7e908518b2b94fa6b394afb0ea7edfba.bindPopup(popup_da78c71d8bbd4833809b7dd3e4b8e69e)
+        ;
+
+        
+    
+    
+            marker_7e908518b2b94fa6b394afb0ea7edfba.bindTooltip(
+                `<div>
+                     浙江康普进出口有限公司
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_0938ab1d61914342a45bccf0f4320d4e = L.marker(
+                [29.30497399999999, 120.103064],
+                {}
+            ).addTo(map_b0227836c14b4f568ec14cd0f5093b68);
+        
+    
+        var popup_1af947fa8d8948929472f7c5cb66e6f1 = L.popup({"maxWidth": 500});
+
+        
+            var html_501d9ae11aaa4efdabfdeaf8f087b039 = $(`<div id="html_501d9ae11aaa4efdabfdeaf8f087b039" style="width: 100.0%; height: 100.0%;"><p>定位: 中国浙江省金华市义乌市江东<br>公司地址：义乌市江东街道吾悦广场<br>可能性: 60<br>备注: 无<br>定位可信度: 0</p></div>`)[0];
+            popup_1af947fa8d8948929472f7c5cb66e6f1.setContent(html_501d9ae11aaa4efdabfdeaf8f087b039);
+        
+
+        marker_0938ab1d61914342a45bccf0f4320d4e.bindPopup(popup_1af947fa8d8948929472f7c5cb66e6f1)
+        ;
+
+        
+    
+    
+            marker_0938ab1d61914342a45bccf0f4320d4e.bindTooltip(
+                `<div>
+                     义乌市博远宸星进出口有限公司
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_ba7fd2d92d934bb790bc180a2c6fc444 = L.marker(
+                [28.899106, 119.99685],
+                {}
+            ).addTo(map_b0227836c14b4f568ec14cd0f5093b68);
+        
+    
+        var popup_8e0e19269a6d40b2a59180919fd62f01 = L.popup({"maxWidth": 500});
+
+        
+            var html_883a8e2a5ef047f7ac1d6a1fe5eaa359 = $(`<div id="html_883a8e2a5ef047f7ac1d6a1fe5eaa359" style="width: 100.0%; height: 100.0%;"><p>定位: 中国浙江省金华市永康市灵石路167号 邮政编码: 321301<br>公司地址：浙江省金华市永康市西城街道灵石路167号<br>可能性: 50<br>备注: 无<br>定位可信度: 9</p></div>`)[0];
+            popup_8e0e19269a6d40b2a59180919fd62f01.setContent(html_883a8e2a5ef047f7ac1d6a1fe5eaa359);
+        
+
+        marker_ba7fd2d92d934bb790bc180a2c6fc444.bindPopup(popup_8e0e19269a6d40b2a59180919fd62f01)
+        ;
+
+        
+    
+    
+            marker_ba7fd2d92d934bb790bc180a2c6fc444.bindTooltip(
+                `<div>
+                     义乌市志腾电子商务有限公司
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_30b49a123ff84153b0763b5e4cb9efc3 = L.marker(
+                [30.207833, 120.266752],
+                {}
+            ).addTo(map_b0227836c14b4f568ec14cd0f5093b68);
+        
+    
+        var popup_82edc4fa46f242069d9ede73914970d1 = L.popup({"maxWidth": 500});
+
+        
+            var html_6d4ec0207ca04ed698493954a5c9a1ca = $(`<div id="html_6d4ec0207ca04ed698493954a5c9a1ca" style="width: 100.0%; height: 100.0%;"><p>定位: 中国浙江省杭州市萧山区<br>公司地址：杭州萧山经济技术开发区钱农东路8号<br>可能性: 0<br>备注: 业务扩展<br>定位可信度: 2</p></div>`)[0];
+            popup_82edc4fa46f242069d9ede73914970d1.setContent(html_6d4ec0207ca04ed698493954a5c9a1ca);
+        
+
+        marker_30b49a123ff84153b0763b5e4cb9efc3.bindPopup(popup_82edc4fa46f242069d9ede73914970d1)
+        ;
+
+        
+    
+    
+            marker_30b49a123ff84153b0763b5e4cb9efc3.bindTooltip(
+                `<div>
+                     达利（中国）有限公司
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_530615a76e514d07afe2ea2c781e0505 = L.marker(
+                [30.310011, 120.348422],
+                {}
+            ).addTo(map_b0227836c14b4f568ec14cd0f5093b68);
+        
+    
+        var popup_895806313398462a850035ec6aa3a9da = L.popup({"maxWidth": 500});
+
+        
+            var html_95add9fe60ce49509198f9b405a6678a = $(`<div id="html_95add9fe60ce49509198f9b405a6678a" style="width: 100.0%; height: 100.0%;"><p>定位: 中国浙江省杭州市江干区下沙地区<br>公司地址：杭州江干区下沙万利亚名城1栋515<br>可能性: 0<br>备注: 业务扩展<br>定位可信度: 0</p></div>`)[0];
+            popup_895806313398462a850035ec6aa3a9da.setContent(html_95add9fe60ce49509198f9b405a6678a);
+        
+
+        marker_530615a76e514d07afe2ea2c781e0505.bindPopup(popup_895806313398462a850035ec6aa3a9da)
+        ;
+
+        
+    
+    
+            marker_530615a76e514d07afe2ea2c781e0505.bindTooltip(
+                `<div>
+                     杭州原印实业有限公司
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_7b7087f33e9b4d0cb73a3a733b4f1fa7 = L.marker(
+                [30.29298, 120.043755],
+                {}
+            ).addTo(map_b0227836c14b4f568ec14cd0f5093b68);
+        
+    
+        var popup_f4481bf4dcec402f95defa6dbdb84544 = L.popup({"maxWidth": 500});
+
+        
+            var html_0c2cb5ba5df34b289f8ed9d646b7ff1b = $(`<div id="html_0c2cb5ba5df34b289f8ed9d646b7ff1b" style="width: 100.0%; height: 100.0%;"><p>定位: 中国浙江省杭州市余杭区创意二路<br>公司地址：浙江省杭州市余杭区西溪润景<br>可能性: 0<br>备注: 业务扩展<br>定位可信度: 4</p></div>`)[0];
+            popup_f4481bf4dcec402f95defa6dbdb84544.setContent(html_0c2cb5ba5df34b289f8ed9d646b7ff1b);
+        
+
+        marker_7b7087f33e9b4d0cb73a3a733b4f1fa7.bindPopup(popup_f4481bf4dcec402f95defa6dbdb84544)
+        ;
+
+        
+    
+    
+            marker_7b7087f33e9b4d0cb73a3a733b4f1fa7.bindTooltip(
+                `<div>
+                     杭州凯瀚激光科技有限公司
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_b94fa97fd36b4374bdf13573e95bdc97 = L.marker(
+                [30.303117, 120.368898],
+                {}
+            ).addTo(map_b0227836c14b4f568ec14cd0f5093b68);
+        
+    
+        var popup_53473d5e3b7c48ff93e364ca3db62914 = L.popup({"maxWidth": 500});
+
+        
+            var html_f23c3d789782430c99aca9efd815416d = $(`<div id="html_f23c3d789782430c99aca9efd815416d" style="width: 100.0%; height: 100.0%;"><p>定位: 中国浙江省杭州市江干区6号大街452号<br>公司地址：杭州下沙新加坡科技园17幢812-814<br>可能性: 90<br>备注: 无<br>定位可信度: 6</p></div>`)[0];
+            popup_53473d5e3b7c48ff93e364ca3db62914.setContent(html_f23c3d789782430c99aca9efd815416d);
+        
+
+        marker_b94fa97fd36b4374bdf13573e95bdc97.bindPopup(popup_53473d5e3b7c48ff93e364ca3db62914)
+        ;
+
+        
+    
+    
+            marker_b94fa97fd36b4374bdf13573e95bdc97.bindTooltip(
+                `<div>
+                     杭州刚客网络科技有限公司
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_4157ddf0a5d64a93a011cd1660daf1fd = L.marker(
+                [30.204093, 120.205288],
+                {}
+            ).addTo(map_b0227836c14b4f568ec14cd0f5093b68);
+        
+    
+        var popup_bca60025ffeb426eaf496345a1161426 = L.popup({"maxWidth": 500});
+
+        
+            var html_be172ced44114e7aba4c24cd4e80b6c2 = $(`<div id="html_be172ced44114e7aba4c24cd4e80b6c2" style="width: 100.0%; height: 100.0%;"><p>定位: 中国浙江省杭州市滨江区江南大道380-480号 邮政编码: 310060<br>公司地址：江南大道380号<br>可能性: 60<br>备注: 无<br>定位可信度: 6</p></div>`)[0];
+            popup_bca60025ffeb426eaf496345a1161426.setContent(html_be172ced44114e7aba4c24cd4e80b6c2);
+        
+
+        marker_4157ddf0a5d64a93a011cd1660daf1fd.bindPopup(popup_bca60025ffeb426eaf496345a1161426)
+        ;
+
+        
+    
+    
+            marker_4157ddf0a5d64a93a011cd1660daf1fd.bindTooltip(
+                `<div>
+                     杭州纪超贸易有限公司
+                 </div>`,
+                {"sticky": true}
+            );
+        
+</script>

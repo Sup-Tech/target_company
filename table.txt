@@ -63,3 +63,5 @@ update raw_datas set is_read=1 where company_id in (select id from companies whe
 
 # 可视化部分 数据查询
 select * from raw_datas where id in (select raw_id from final_datas);
+# 可能性
+select possible, note, raw_id, map_id from final_datas;
