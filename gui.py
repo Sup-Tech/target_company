@@ -1,6 +1,6 @@
 import sys
-from map import save_map
-from sql_funcs import get_datas
+from map import save_map, save_plotly_map
+from sql_funcs import get_datas, get_plotly_datas
 from google_coordinate import get_coordinate
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QLabel, \
     QHBoxLayout, QProgressBar, QStatusBar, QMainWindow, QShortcut, QApplication
@@ -353,7 +353,8 @@ class DatasFilterWindow(QMainWindow):
             return
 
     def view_final_result(self):
-        save_map(get_datas())
+        # 使用poltly制图 对应的数据格式整理
+        save_plotly_map(get_plotly_datas())
 
 
 class MainWindow(QMainWindow):
