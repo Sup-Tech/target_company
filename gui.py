@@ -5,11 +5,12 @@ from google_coordinate import get_coordinate
 from PyQt5.QtWidgets import QPushButton, QLineEdit, QLabel, \
     QHBoxLayout, QProgressBar, QStatusBar, QMainWindow, QShortcut, QApplication
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex, QTimer
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QWaitCondition, QMutex, QTimer, QUrl
 from model.widgets_models import *
 import sqlite3
 import requests
 from common.style_tool import StyleTool
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 
 class Thread(QThread):
@@ -413,8 +414,21 @@ class MainWindow(QMainWindow):
         self.data_filter.show()
 
 
-class VisualizationWindow(QWidget):
-    pass
+class VisualizationWindow(QMainWindow):
+    def __init__(self):
+        super(VisualizationWindow, self).__init__()
+        self.setWindowTitle('加载外部网页的例子')
+        self.resize(500, 500)
+        self.browser = QWebEngineView()
+
+        #加载外部的web界面
+        self.browser.load(QUrl(r'./map_plotly.html'))
+        self.setCentralWidget(self.browser)
+
+    @staticmethod
+    def load_finish(self):
+        print('页面加载结束')
+
 #     def start_crawl(self):
 #         if self.crawl_btn.text() == '开始爬取':
 #             self.crawl_btn.setText('停止爬取')

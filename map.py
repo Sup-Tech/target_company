@@ -1,6 +1,6 @@
 import folium
 import plotly.graph_objects as go
-
+import plotly.io as io
 
 def save_map(datas, mapCenter='杭州'):
     """
@@ -52,7 +52,7 @@ def save_plotly_map(datas, mapCenter='杭州'):
             marker=go.scattermapbox.Marker(
                 size=9,
                 color=datas['opacity'],
-                colorscale=[[0, '#97D2E9'], [1, '#0092FA']]
+                colorscale=[[0, '#F6AEA7'], [1, '#FF0000']]
             ),
             text=datas['text'],
             hoverinfo='text',
@@ -69,6 +69,7 @@ def save_plotly_map(datas, mapCenter='杭州'):
                 lat=map_center[mapCenter][0],
                 lon=map_center[mapCenter][1]
             ),
+            style='mapbox://styles/juban/ck9af90m802p61iqs71jb3y7g',
             pitch=0,
             zoom=10
         ),
